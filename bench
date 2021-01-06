@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage="$(basename "$0") [-h] [--help] <target> -- benchmark i/o speed of a volume
+
+DESCRIPTION:
+    -h          Show this help message
+    --help      Same as -h
+    -s          Data size to use for benchmark
+    --size      Same as -s
+
+PRIMARIES:
+    target      Target location for benchmark
+"
+usage() {
+    echo "$usage"
+    exit 1
+}
+
+SIZE=`dehumanise 100m`
+
+for option in "$@"
+do
+    case $option in
+        -h|--help) usage;;
+        -s=*|--size=*) SIZE=$(dehumanise "${option#*=}"); shift;;
+        -s|--size) SIZE=$(dehumanise $2); shift; shift;;
+        -*|--*|\?) printf "illegal option: %s\n\n" "$option" >&2; usage;;
+    esac
+done
+
+if [ $# -ne 1 ]; then
+    usage
+fi
+
+TARGET=$1
+TESTFILE="$TARGET/$(basename "$0").`echo date $$ | md5`"
+
+cleanup() {
+    echo "cleaning up ..."
+    rm "$TESTFILE"
+}
+
+trap cleanup SIGINT
+
+##
+
+BS=$SIZE
+COUNT=1
+
+echo "Starting benchmark ..."
+echo "  Target: $TESTFILE"
+echo "  size: `humanise $SIZE`"
+
+echo "testing write speed ..."
+write=$(dd if=/dev/zero bs=$BS of=$TESTFILE count=$COUNT 2>&1 | grep sec | awk '{print $1 / 1024 / 1024 / $5, "MB/sec" }')
+echo $write
+
+echo "testing read speed ..."
+read=$(dd if="$TESTFILE" bs=$BS of=/dev/null count=$COUNT 2>&1 | grep sec | awk '{print $1 / 1024 / 1024 / $5, "MB/sec" }')
+echo $read
+
+cleanup
+
+echo "done."
+
+exit $?
