@@ -34,7 +34,7 @@ if [ $# -ne 1 ]; then
 fi
 
 TARGET=$1
-TESTFILE="$TARGET/$(basename "$0").`echo date $$ | md5`"
+TESTFILE="$TARGET/$(basename "$0").`echo date $$ | md5x`"
 
 cleanup() {
     echo "cleaning up ..."
