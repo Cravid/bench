@@ -54,7 +54,7 @@ echo "  size: `humanise $SIZE`"
 
 echo "testing write speed ..."
 #write=$(dd if=/dev/zero bs=$BS of=$TESTFILE count=$COUNT 2>&1 | grep sec | awk '{print $1 / 1024 / 1024 / $5, "MB/sec" }')
-write=$(dd if=/dev/zero bs=$BS conv=fdatasync of=$TESTFILE count=$COUNT 2>&1 | tail -1 | awk {'print $10, $11 }')
+write=$(dd if=/dev/zero bs=$BS of=$TESTFILE count=$COUNT 2>&1 | tail -1 | awk {'print $10, $11 }')
 echo $write
 
 echo "testing read speed ..."
